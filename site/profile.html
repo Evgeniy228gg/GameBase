@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профіль користувача</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .hidden {
+            display: none;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+        .friends-list, .groups-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .friends-list li, .groups-list li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Форма входу / Регистрации -->
+<div class="container" id="authContainer">
+    <h2>Введіть ваш нік та пароль</h2>
+    <input type="text" id="username" placeholder="Нік" required>
+    <input type="password" id="password" placeholder="Пароль" required>
+    <button onclick="login()">Увійти</button>
+    <button onclick="register()">Зареєструватися</button>
+</div>
+
+<!-- Страница профілю -->
+<div class="container hidden" id="profileContainer">
+    <h2>Профіль користувача</h2>
+    <div>
+        <img id="profileAvatar" class="profile-avatar" src="" alt="Аватар">
+    </div>
+    <h3>Нік: <span id="profileUsername"></span></h3>
+    <p>Пароль: <span id="profilePassword"></span></p>
+    
+    <h3>Друзі:</h3>
+    <ul class="friends-list" id="friendsList">
+        <!-- Список друзів -->
+    </ul>
+
+    <h3>Групи:</h3>
+    <ul class="groups-list" id="groupsList">
+        <!-- Список груп -->
+    </ul>
+
+    <button onclick="editProfile()">Редагувати профіль</button>
+    <button onclick="logout()">Вийти</button>
+    <button onclick="goToMain()">На головну сторінку</button> <!-- Кнопка для переходу на головну -->
+</div>
+
+<!-- Страница редагування профілю -->
+<div class="container hidden" id="editProfileContainer">
+    <h2>Редагувати профіль</h2>
+    <input type="text" id="editUsername" placeholder="Новий нік" required>
+    <input type="password" id="editPassword" placeholder="Новий пароль" required>
+    <input type="text" id="editAvatar" placeholder="URL нового аватара" required>
+    <input type="text" id="editFriends" placeholder="Друзі (через кому)" required>
+    <input type="text" id="editGroups" placeholder="Групи (через кому)" required>
+    <button onclick="saveProfileChanges()">Зберегти зміни</button>
+    <button onclick="cancelEditProfile()">Скасувати</button>
+</div>
+
+<script>
+// Функція для входу (логін)
+function login() {
+    var username = document.getElementById('username').value;
+    var password = document.getElementById('password').value;
+
+    if (username && password) {
+        // Зберігаємо дані користувача в localStorage
+        localStorage.setItem('username', username);
+        localStorage.setItem('password', password);
+        localStorage.setItem('avatar', 'https://via.placeholder.com/100'); // Пример аватара
+        localStorage.setItem('friends', JSON.stringify(['Іван', 'Марія', 'Александр']));
+        localStorage.setItem('groups', JSON.stringify(['Група 1', 'Група 2']));
+
+        // Показуємо профіль користувача
+        showProfile(); 
+    } else {
+        alert("Будь ласка, введіть коректні дані!");
+    }
+}
+
+// Функція для реєстрації
+function register() {
+    alert('Форма реєстрації ще не реалізована!');
+}
+
+// Функція для відображення профілю
+function showProfile() {
+    document.getElementById('authContainer').classList.add('hidden');
+    document.getElementById('profileContainer').classList.remove('hidden');
+    
+    var username = localStorage.getItem('username');
+    var password = localStorage.getItem('password');
+    var avatar = localStorage.getItem('avatar');
+    var friends = JSON.parse(localStorage.getItem('friends'));
+    var groups = JSON.parse(localStorage.getItem('groups'));
+    
+    document.getElementById('profileUsername').textContent = username;
+    document.getElementById('profilePassword').textContent = password;
+    document.getElementById('profileAvatar').src = avatar;
+
+    var friendsList = document.getElementById('friendsList');
+    friendsList.innerHTML = '';
+    friends.forEach(function(friend) {
+        var li = document.createElement('li');
+        li.textContent = friend;
+        friendsList.appendChild(li);
+    });
+
+    var groupsList = document.getElementById('groupsList');
+    groupsList.innerHTML = '';
+    groups.forEach(function(group) {
+        var li = document.createElement('li');
+        li.textContent = group;
+        groupsList.appendChild(li);
+    });
+}
+
+// Функція для редагування профілю
+function editProfile() {
+    document.getElementById('profileContainer').classList.add('hidden');
+    document.getElementById('editProfileContainer').classList.remove('hidden');
+    
+    document.getElementById('editUsername').value = localStorage.getItem('username');
+    document.getElementById('editPassword').value = localStorage.getItem('password');
+    document.getElementById('editAvatar').value = localStorage.getItem('avatar');
+    document.getElementById('editFriends').value = JSON.parse(localStorage.getItem('friends')).join(', ');
+    document.getElementById('editGroups').value = JSON.parse(localStorage.getItem('groups')).join(', ');
+}
+
+// Функція для збереження змін профілю
+function saveProfileChanges() {
+    var newUsername = document.getElementById('editUsername').value;
+    var newPassword = document.getElementById('editPassword').value;
+    var newAvatar = document.getElementById('editAvatar').value;
+    var newFriends = document.getElementById('editFriends').value.split(',').map(friend => friend.trim());
+    var newGroups = document.getElementById('editGroups').value.split(',').map(group => group.trim());
+
+    localStorage.setItem('username', newUsername);
+    localStorage.setItem('password', newPassword);
+    localStorage.setItem('avatar', newAvatar);
+    localStorage.setItem('friends', JSON.stringify(newFriends));
+    localStorage.setItem('groups', JSON.stringify(newGroups));
+
+    showProfile();
+}
+
+// Функція для скасування редагування профілю
+function cancelEditProfile() {
+    document.getElementById('editProfileContainer').classList.add('hidden');
+    document.getElementById('profileContainer').classList.remove('hidden');
+}
+
+// Функція для виходу з профілю
+function logout() {
+    localStorage.clear();
+    document.getElementById('profileContainer').classList.add('hidden');
+    document.getElementById('authContainer').classList.remove('hidden');
+}
+
+// Функція для переходу на головну сторінку
+function goToMain() {
+    window.location.href = 'main.html'; // Перехід на main.html
+}
+</script>
+
+</body>
+</html>

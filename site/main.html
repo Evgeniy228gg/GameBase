@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMEBASE</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>GAMEBASE</h1>
+            <nav>
+                <ul>
+                    <li><a href="profile.html">Мой профиль</a></li>
+                    <li><a href="search.html">Поиск чатов и групп</a></li>
+                    <li><a href="my_chats.html">Мои чаты</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section id="search">
+            <div class="container">
+                <h3>Поиск пользователей</h3>
+                <input type="text" id="search" placeholder="Поиск по имени" onkeyup="searchUser()">
+                <ul id="userList"></ul>
+            </div>
+        </section>
+
+        <section id="chat">
+            <div class="container">
+                <h2>Чат</h2>
+                <div id="messages"></div>
+                <textarea id="inputMessage" placeholder="Введите сообщение..."></textarea>
+                <button id="sendMessage" onclick="sendMessage()">Отправить</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Игровой Сайт. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentUser = null;
+        const serverUrl = 'http://localhost:3000'; // URL вашего сервера
+
+        // Регистрация пользователя
+        function register(username) {
+            fetch(`${serverUrl}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            })
+            .then(response => response.json())
+            .then(data => {
+                currentUser = data.username;
+                console.log('User registered:', currentUser);
+            });
+        }
+
+        // Поиск пользователей
+        function searchUser() {
+            const searchQuery = document.getElementById("search").value.toLowerCase();
+            const userList = document.getElementById("userList");
+
+            fetch(`${serverUrl}/users`)
+                .then(response => response.json())
+                .then(users => {
+                    const filteredUsers = users.filter(user => user.username.toLowerCase().includes(searchQuery));
+                    userList.innerHTML = '';
+                    filteredUsers.forEach(user => {
+                        const li = document.createElement("li");
+                        li.textContent = user.username;
+                        li.onclick = () => startChat(user.username);
+                        userList.appendChild(li);
+                    });
+                });
+        }
+
+        // Начать чат
+        function startChat(receiver) {
+            fetch(`${serverUrl}/messages?user1=${currentUser}&user2=${receiver}`)
+                .then(response => response.json())
+                .then(messages => {
+                    const messagesDiv = document.getElementById("messages");
+                    messagesDiv.innerHTML = '';
+                    messages.forEach(msg => {
+                        const div = document.createElement("div");
+                        div.textContent = `${msg.sender}: ${msg.message}`;
+                        messagesDiv.appendChild(div);
+                    });
+                });
+        }
+
+        // Отправка сообщения
+        function sendMessage() {
+            const message = document.getElementById("inputMessage").value;
+            const receiver = document.getElementById("search").value;
+
+            fetch(`${serverUrl}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ sender: currentUser, receiver, message })
+            })
+            .then(response => response.json())
+            .then(() => {
+                startChat(receiver);
+            });
+        }
+    </script>
+</body>
+</html>
